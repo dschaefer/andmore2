@@ -1,0 +1,15 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Android Tooling Core
+Bundle-SymbolicName: org.eclipse.andmore.core
+Bundle-Version: 1.0.0.qualifier
+Bundle-Activator: org.eclipse.andmore.core.internal.Activator
+Bundle-Vendor: Eclipse Andmore
+Require-Bundle: org.eclipse.core.runtime,
+ org.eclipse.core.resources,
+ org.freemarker,
+ org.eclipse.jdt.core,
+ com.google.gson
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-ActivationPolicy: lazy
+Export-Package: org.eclipse.andmore.core

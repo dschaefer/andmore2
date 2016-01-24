@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.ui.newWizards">
+      <category
+            id="org.eclipse.andmore.ui.category"
+            name="Android">
+      </category>
+      <wizard
+            category="org.eclipse.andmore.ui.category"
+            class="org.eclipse.andmore.internal.ui.NewAppWizard"
+            id="org.eclipse.andmore.ui.wizard.newapp"
+            name="Android Application Project"
+            project="true">
+      </wizard>
+   </extension>
+
+</plugin>

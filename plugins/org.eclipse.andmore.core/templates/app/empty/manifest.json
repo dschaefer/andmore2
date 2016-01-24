@@ -1,0 +1,80 @@
+{
+	"files" : [
+		{
+			"src" : "build.gradle",
+			"dest" : "${projectPath}/build.gradle"
+		},
+		{
+			"src" : "proguard-rules.pro",
+			"dest" : "${projectPath}/proguard-rules.pro"
+		},
+		{
+			"src" : "ApplicationTest.java",
+			"dest" : "${projectPath}/src/androidTest/java/${packagePath}/ApplicationTest.java",
+			"open" : true,
+			"show" : true
+		},
+		{
+			"src" : "MainActivity.java",
+			"dest" : "${projectPath}/src/main/java/${packagePath}/${activityName}.java",
+			"open" : true 
+		},
+		{
+			"src" : "AndroidManifest.xml",
+			"dest" : "${projectPath}/src/main/AndroidManifest.xml"
+		},
+		{
+			"src" : "res/layout/activity_main.xml",
+			"dest" : "${projectPath}/src/main/res/layout/${layoutName}.xml"
+		},
+		{
+			"src" : "res/mipmap-hdpi/ic_launcher.png",
+			"dest" : "${projectPath}/src/main/res/mipmap-hdpi/ic_launcher.png",
+			"skipTemplate" : true
+		},
+		{
+			"src" : "res/mipmap-mdpi/ic_launcher.png",
+			"dest" : "${projectPath}/src/main/res/mipmap-mdpi/ic_launcher.png",
+			"skipTemplate" : true
+		},
+		{
+			"src" : "res/mipmap-xhdpi/ic_launcher.png",
+			"dest" : "${projectPath}/src/main/res/mipmap-xhdpi/ic_launcher.png",
+			"skipTemplate" : true
+		},
+		{
+			"src" : "res/mipmap-xxhdpi/ic_launcher.png",
+			"dest" : "${projectPath}/src/main/res/mipmap-xxhdpi/ic_launcher.png",
+			"skipTemplate" : true
+		},
+		{
+			"src" : "res/mipmap-xxxhdpi/ic_launcher.png",
+			"dest" : "${projectPath}/src/main/res/mipmap-xxxhdpi/ic_launcher.png",
+			"skipTemplate" : true
+		},
+		{
+			"src" : "res/values/colors.xml",
+			"dest" : "${projectPath}/src/main/res/values/colors.xml"
+		},
+		{
+			"src" : "res/values/dimens.xml",
+			"dest" : "${projectPath}/src/main/res/values/dimens.xml"
+		},
+		{
+			"src" : "res/values-w820dp/dimens.xml",
+			"dest" : "${projectPath}/src/main/res/values-w820dp/dimens.xml"
+		},
+		{
+			"src" : "res/values/strings.xml",
+			"dest" : "${projectPath}/src/main/res/values/strings.xml"
+		},
+		{
+			"src" : "res/values/styles.xml",
+			"dest" : "${projectPath}/src/main/res/values/styles.xml"
+		},
+		{
+			"src" : "ExampleUnitTest.java",
+			"dest" : "${projectPath}/src/test/java/${packagePath}/ExampleUnitTest.java"
+		}
+	]
+}
