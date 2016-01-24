@@ -9,6 +9,7 @@ package org.eclipse.andmore.core.internal;
 
 import org.eclipse.core.runtime.Plugin;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
 
 public class Activator extends Plugin {
 
@@ -30,6 +31,12 @@ public class Activator extends Plugin {
 
 	public static String getId() {
 		return plugin.getBundle().getSymbolicName();
+	}
+
+	public static <T> T getService(Class<T> service) {
+		BundleContext context = plugin.getBundle().getBundleContext();
+		ServiceReference<T> ref = context.getServiceReference(service);
+		return ref != null ? context.getService(ref) : null;
 	}
 
 }

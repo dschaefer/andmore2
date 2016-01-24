@@ -44,6 +44,12 @@ import org.gradle.tooling.BuildException;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
 
+import com.android.builder.model.AndroidArtifact;
+import com.android.builder.model.AndroidLibrary;
+import com.android.builder.model.AndroidProject;
+import com.android.builder.model.Dependencies;
+import com.android.builder.model.JavaLibrary;
+import com.android.builder.model.Variant;
 import com.google.gson.Gson;
 
 public class AppProjectGenerator {
@@ -60,7 +66,6 @@ public class AppProjectGenerator {
 	private final Map<String, Object> model = new HashMap<>();
 	private ProjectTemplateManifest manifest;
 	private final List<IFile> filesToOpen = new ArrayList<>();
-	private IFile fileToShow;
 
 	public void setProject(IProject project) {
 		this.project = project;
@@ -94,11 +99,14 @@ public class AppProjectGenerator {
 		generateSources(monitor);
 
 		// Run Gradle build
+		IConsoleService console = Activator.getService(IConsoleService.class);
+		console.clear();
+		console.activate();
 		File projectDir = new File(project.getLocationURI());
 		ProjectConnection connection = GradleConnector.newConnector().forProjectDirectory(projectDir).connect();
 		try {
-			connection.newBuild().forTasks("assembleDebug").setStandardOutput(System.out).setStandardError(System.err)
-					.run();
+			connection.newBuild().forTasks("assembleDebug").setStandardOutput(console.getOutputStream()) //$NON-NLS-1$
+					.setStandardError(console.getErrorStream()).run();
 		} catch (BuildException e) {
 		}
 
@@ -117,7 +125,8 @@ public class AppProjectGenerator {
 			}
 		}
 
-		IPath genPath = project.getFolder("/build/generated/source/r/debug").getFullPath();
+		// Generated source - TODO this is in the model too
+		IPath genPath = project.getFolder("/build/generated/source/r/debug").getFullPath(); //$NON-NLS-1$
 		entries.add(JavaCore.newSourceEntry(genPath));
 
 		// JRE
@@ -125,30 +134,61 @@ public class AppProjectGenerator {
 		IPath vmPath = JavaRuntime.newJREContainerPath(vm);
 		entries.add(JavaCore.newContainerEntry(vmPath));
 
-		// Android jars - fake out for now
-		String[] jars = new String[] { "/Users/dschaefer/Library/Android/sdk/platforms/android-23/android.jar",
-				"/Users/dschaefer/Library/Android/sdk/extras/android/m2repository/com/android/support/support-annotations/23.1.1/support-annotations-23.1.1.jar",
-				projectDir.toString()
-						+ "/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.1.1/jars/classes.jar",
-				projectDir.toString()
-						+ "/build/intermediates/exploded-aar/com.android.support/support-v4/23.1.1/jars/classes.jar",
-				projectDir.toString()
-						+ "/build/intermediates/exploded-aar/com.android.support/support-v4/23.1.1/jars/libs/internal_impl-23.1.1.jar",
-				"/Users/dschaefer/.gradle/wrapper/dists/gradle-2.10-bin/baigpnfu14tdk6ztbfwcl8275/gradle-2.10/lib/plugins/junit-4.12.jar" };
+		// Android jars out of gradle - TODO source if we have it
+		AndroidProject androidProject = connection.getModel(AndroidProject.class);
 
-		for (String jar : jars) {
+		for (String jar : androidProject.getBootClasspath()) {
 			entries.add(JavaCore.newLibraryEntry(new Path(jar), null, null));
 		}
+
+		Variant debugVariant = null;
+		for (Variant variant : androidProject.getVariants()) {
+			if ("debug".equals(variant.getName())) { //$NON-NLS-1$
+				debugVariant = variant;
+				break;
+			}
+		}
+
+		if (debugVariant != null) {
+			addDependencies(entries, debugVariant.getMainArtifact().getDependencies());
+			for (AndroidArtifact artifact : debugVariant.getExtraAndroidArtifacts()) {
+				addDependencies(entries, artifact.getDependencies());
+			}
+		}
+
+		String[] jars = new String[] {
+				"/Users/dschaefer/.gradle/wrapper/dists/gradle-2.10-bin/baigpnfu14tdk6ztbfwcl8275/gradle-2.10/lib/plugins/junit-4.12.jar" };
 
 		javaProject.setRawClasspath(entries.toArray(new IClasspathEntry[entries.size()]), monitor);
 	}
 
-	public List<IFile> getFilesToOpen() {
-		if (fileToShow != null) {
-			filesToOpen.add(fileToShow);
-			fileToShow = null;
+	private void addDependencies(List<IClasspathEntry> entries, Dependencies deps) {
+		for (JavaLibrary lib : deps.getJavaLibraries()) {
+			addJavaLibrary(entries, lib);
 		}
+		for (AndroidLibrary lib : deps.getLibraries()) {
+			addAndroidLibrary(entries, lib);
+		}
+	}
 
+	private void addJavaLibrary(List<IClasspathEntry> entries, JavaLibrary lib) {
+		entries.add(JavaCore.newLibraryEntry(new Path(lib.getJarFile().getAbsolutePath()), null, null));
+		for (JavaLibrary dep : lib.getDependencies()) {
+			addJavaLibrary(entries, dep);
+		}
+	}
+
+	private void addAndroidLibrary(List<IClasspathEntry> entries, AndroidLibrary lib) {
+		entries.add(JavaCore.newLibraryEntry(new Path(lib.getJarFile().getAbsolutePath()), null, null));
+		for (AndroidLibrary dep : lib.getLibraryDependencies()) {
+			addAndroidLibrary(entries, dep);
+		}
+		for (File local : lib.getLocalJars()) {
+			entries.add(JavaCore.newLibraryEntry(new Path(local.getAbsolutePath()), null, null));
+		}
+	}
+
+	public List<IFile> getFilesToOpen() {
 		return filesToOpen;
 	}
 
@@ -174,6 +214,7 @@ public class AppProjectGenerator {
 	private void generateSources(IProgressMonitor monitor) throws CoreException {
 		// Generate the files
 		IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
+		IFile fileToShow = null;
 		for (FileTemplate fileTemplate : manifest.getFiles()) {
 			IPath destPath = new Path(fileTemplate.getDest());
 			IProject project = root.getProject(destPath.segment(0));
@@ -202,12 +243,16 @@ public class AppProjectGenerator {
 				if (fileTemplate.isShow()) {
 					if (fileToShow != null) {
 						filesToOpen.add(fileToShow);
-						fileToShow = file;
 					}
+					fileToShow = file;
 				} else {
-					filesToOpen.add(fileToShow);
+					filesToOpen.add(file);
 				}
 			}
+		}
+
+		if (fileToShow != null) {
+			filesToOpen.add(fileToShow);
 		}
 	}
 }

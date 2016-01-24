@@ -10,9 +10,7 @@
 		},
 		{
 			"src" : "ApplicationTest.java",
-			"dest" : "${projectPath}/src/androidTest/java/${packagePath}/ApplicationTest.java",
-			"open" : true,
-			"show" : true
+			"dest" : "${projectPath}/src/androidTest/java/${packagePath}/ApplicationTest.java"
 		},
 		{
 			"src" : "MainActivity.java",
@@ -25,7 +23,9 @@
 		},
 		{
 			"src" : "res/layout/activity_main.xml",
-			"dest" : "${projectPath}/src/main/res/layout/${layoutName}.xml"
+			"dest" : "${projectPath}/src/main/res/layout/${layoutName}.xml",
+			"open" : true,
+			"show" : true
 		},
 		{
 			"src" : "res/mipmap-hdpi/ic_launcher.png",
