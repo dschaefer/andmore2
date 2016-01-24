@@ -7,6 +7,8 @@
  *******************************************************************************/
 package org.eclipse.andmore.internal.ui;
 
+import java.util.List;
+
 import org.eclipse.andmore.core.AppProjectGenerator;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
@@ -42,8 +44,8 @@ public class NewAppWizard extends BasicNewProjectResourceWizard {
 					generator.setActivityName("MainActivity");
 					generator.setLayoutName("activity_main");
 					generator.generate(monitor);
-					IFile[] toOpen = generator.getFilesToOpen();
-					if (toOpen != null && toOpen.length > 0) {
+					List<IFile> toOpen = generator.getFilesToOpen();
+					if (toOpen.size() > 0) {
 						getWorkbench().getDisplay().asyncExec(new Runnable() {
 							@Override
 							public void run() {

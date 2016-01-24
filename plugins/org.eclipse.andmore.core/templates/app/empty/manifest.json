@@ -75,6 +75,16 @@
 		{
 			"src" : "ExampleUnitTest.java",
 			"dest" : "${projectPath}/src/test/java/${packagePath}/ExampleUnitTest.java"
+		},
+		{
+			"src" : "local.properties",
+			"dest" : "${projectPath}/local.properties"
 		}
+	],
+	"srcEntries" : [
+		"/src/main/java",
+		"/src/main/res",
+		"/src/test/java",
+		"/src/androidTest/java"
 	]
 }

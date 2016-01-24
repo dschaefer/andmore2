@@ -40,9 +40,14 @@ public class ProjectTemplateManifest {
 	}
 
 	private List<FileTemplate> files;
+	private List<String> srcEntries;
 
 	public List<FileTemplate> getFiles() {
 		return files;
+	}
+
+	public List<String> getSrcEntries() {
+		return srcEntries;
 	}
 
 }

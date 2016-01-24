@@ -7,6 +7,7 @@
  *******************************************************************************/
 package org.eclipse.andmore.core;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
@@ -23,6 +24,7 @@ import org.eclipse.andmore.core.internal.TemplateGenerator;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
@@ -33,7 +35,14 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jdt.core.IClasspathEntry;
+import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.launching.IVMInstall;
+import org.eclipse.jdt.launching.JavaRuntime;
+import org.gradle.tooling.BuildException;
+import org.gradle.tooling.GradleConnector;
+import org.gradle.tooling.ProjectConnection;
 
 import com.google.gson.Gson;
 
@@ -48,7 +57,9 @@ public class AppProjectGenerator {
 	private String activityName;
 	private String layoutName;
 
-	private List<IFile> filesToOpen = new ArrayList<>();
+	private final Map<String, Object> model = new HashMap<>();
+	private ProjectTemplateManifest manifest;
+	private final List<IFile> filesToOpen = new ArrayList<>();
 	private IFile fileToShow;
 
 	public void setProject(IProject project) {
@@ -68,10 +79,7 @@ public class AppProjectGenerator {
 	}
 
 	public void generate(IProgressMonitor monitor) throws CoreException {
-		addNatures(project, monitor);
-
 		// The model for the templates
-		Map<String, String> model = new HashMap<>();
 		model.put("projectPath", project.getFullPath().toString()); //$NON-NLS-1$
 		model.put("packageName", packageName); //$NON-NLS-1$
 		model.put("packagePath", packageName.replace('.', '/')); //$NON-NLS-1$
@@ -81,8 +89,89 @@ public class AppProjectGenerator {
 		// load template manifest
 		StringWriter writer = new StringWriter();
 		generator.loadFile("manifest.json", model, writer); //$NON-NLS-1$
-		ProjectTemplateManifest manifest = new Gson().fromJson(writer.toString(), ProjectTemplateManifest.class);
+		manifest = new Gson().fromJson(writer.toString(), ProjectTemplateManifest.class);
 
+		generateSources(monitor);
+
+		// Run Gradle build
+		File projectDir = new File(project.getLocationURI());
+		ProjectConnection connection = GradleConnector.newConnector().forProjectDirectory(projectDir).connect();
+		try {
+			connection.newBuild().forTasks("assembleDebug").setStandardOutput(System.out).setStandardError(System.err)
+					.run();
+		} catch (BuildException e) {
+		}
+
+		project.refreshLocal(IResource.DEPTH_INFINITE, monitor);
+
+		// Set up Java project
+		addNatures(monitor);
+		IJavaProject javaProject = JavaCore.create(project);
+
+		// Source folders
+		List<IClasspathEntry> entries = new ArrayList<>();
+		if (manifest.getSrcEntries() != null) {
+			for (String srcEntry : manifest.getSrcEntries()) {
+				IPath srcPath = project.getFolder(srcEntry).getFullPath();
+				entries.add(JavaCore.newSourceEntry(srcPath));
+			}
+		}
+
+		IPath genPath = project.getFolder("/build/generated/source/r/debug").getFullPath();
+		entries.add(JavaCore.newSourceEntry(genPath));
+
+		// JRE
+		IVMInstall vm = JavaRuntime.getDefaultVMInstall();
+		IPath vmPath = JavaRuntime.newJREContainerPath(vm);
+		entries.add(JavaCore.newContainerEntry(vmPath));
+
+		// Android jars - fake out for now
+		String[] jars = new String[] { "/Users/dschaefer/Library/Android/sdk/platforms/android-23/android.jar",
+				"/Users/dschaefer/Library/Android/sdk/extras/android/m2repository/com/android/support/support-annotations/23.1.1/support-annotations-23.1.1.jar",
+				projectDir.toString()
+						+ "/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.1.1/jars/classes.jar",
+				projectDir.toString()
+						+ "/build/intermediates/exploded-aar/com.android.support/support-v4/23.1.1/jars/classes.jar",
+				projectDir.toString()
+						+ "/build/intermediates/exploded-aar/com.android.support/support-v4/23.1.1/jars/libs/internal_impl-23.1.1.jar",
+				"/Users/dschaefer/.gradle/wrapper/dists/gradle-2.10-bin/baigpnfu14tdk6ztbfwcl8275/gradle-2.10/lib/plugins/junit-4.12.jar" };
+
+		for (String jar : jars) {
+			entries.add(JavaCore.newLibraryEntry(new Path(jar), null, null));
+		}
+
+		javaProject.setRawClasspath(entries.toArray(new IClasspathEntry[entries.size()]), monitor);
+	}
+
+	public List<IFile> getFilesToOpen() {
+		if (fileToShow != null) {
+			filesToOpen.add(fileToShow);
+			fileToShow = null;
+		}
+
+		return filesToOpen;
+	}
+
+	private void addNatures(IProgressMonitor monitor) throws CoreException {
+		if (monitor != null && monitor.isCanceled()) {
+			throw new OperationCanceledException();
+		}
+		if (!project.hasNature(JavaCore.NATURE_ID)) {
+			IProjectDescription description = project.getDescription();
+			String[] prevNatures = description.getNatureIds();
+			String[] newNatures = new String[prevNatures.length + 1];
+			System.arraycopy(prevNatures, 0, newNatures, 0, prevNatures.length);
+			newNatures[prevNatures.length] = JavaCore.NATURE_ID;
+			description.setNatureIds(newNatures);
+			project.setDescription(description, monitor);
+		} else {
+			if (monitor != null) {
+				monitor.worked(1);
+			}
+		}
+	}
+
+	private void generateSources(IProgressMonitor monitor) throws CoreException {
 		// Generate the files
 		IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
 		for (FileTemplate fileTemplate : manifest.getFiles()) {
@@ -121,40 +210,4 @@ public class AppProjectGenerator {
 			}
 		}
 	}
-
-	public IFile[] getFilesToOpen() {
-		int n = filesToOpen.size();
-		if (fileToShow != null) {
-			n++;
-		}
-
-		IFile[] files = new IFile[n];
-		filesToOpen.toArray(files);
-
-		if (fileToShow != null) {
-			files[files.length - 1] = fileToShow;
-		}
-
-		return files;
-	}
-
-	private static void addNatures(IProject project, IProgressMonitor monitor) throws CoreException {
-		if (monitor != null && monitor.isCanceled()) {
-			throw new OperationCanceledException();
-		}
-		if (!project.hasNature(JavaCore.NATURE_ID)) {
-			IProjectDescription description = project.getDescription();
-			String[] prevNatures = description.getNatureIds();
-			String[] newNatures = new String[prevNatures.length + 1];
-			System.arraycopy(prevNatures, 0, newNatures, 0, prevNatures.length);
-			newNatures[prevNatures.length] = JavaCore.NATURE_ID;
-			description.setNatureIds(newNatures);
-			project.setDescription(description, monitor);
-		} else {
-			if (monitor != null) {
-				monitor.worked(1);
-			}
-		}
-	}
-
 }
