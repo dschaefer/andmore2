@@ -48,6 +48,7 @@ import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.Dependencies;
+import com.android.builder.model.JavaArtifact;
 import com.android.builder.model.JavaLibrary;
 import com.android.builder.model.Variant;
 import com.google.gson.Gson;
@@ -154,10 +155,10 @@ public class AppProjectGenerator {
 			for (AndroidArtifact artifact : debugVariant.getExtraAndroidArtifacts()) {
 				addDependencies(entries, artifact.getDependencies());
 			}
+			for (JavaArtifact artifact : debugVariant.getExtraJavaArtifacts()) {
+				addDependencies(entries, artifact.getDependencies());
+			}
 		}
-
-		String[] jars = new String[] {
-				"/Users/dschaefer/.gradle/wrapper/dists/gradle-2.10-bin/baigpnfu14tdk6ztbfwcl8275/gradle-2.10/lib/plugins/junit-4.12.jar" };
 
 		javaProject.setRawClasspath(entries.toArray(new IClasspathEntry[entries.size()]), monitor);
 	}
