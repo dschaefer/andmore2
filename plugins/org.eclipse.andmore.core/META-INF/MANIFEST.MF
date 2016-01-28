@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Android Tooling Core
-Bundle-SymbolicName: org.eclipse.andmore.core
+Bundle-SymbolicName: org.eclipse.andmore.core;singleton:=true
 Bundle-Version: 1.0.0.qualifier
 Bundle-Activator: org.eclipse.andmore.core.internal.Activator
 Bundle-Vendor: Eclipse Andmore
@@ -12,7 +12,8 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.jdt.core,
  org.eclipse.jdt.launching,
  org.slf4j.api;bundle-version="1.7.2",
- org.gradle.toolingapi;bundle-version="2.11.0"
+ org.gradle.toolingapi;bundle-version="2.11.0",
+ org.eclipse.remote.core;bundle-version="2.0.0"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Export-Package: org.eclipse.andmore.core

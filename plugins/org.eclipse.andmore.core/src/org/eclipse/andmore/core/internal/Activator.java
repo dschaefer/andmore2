@@ -7,7 +7,11 @@
  *******************************************************************************/
 package org.eclipse.andmore.core.internal;
 
+import org.eclipse.andmore.core.sdk.IAndroidSDKService;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Plugin;
+import org.eclipse.core.runtime.Status;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 
@@ -18,6 +22,7 @@ public class Activator extends Plugin {
 	@Override
 	public void start(BundleContext bundleContext) throws Exception {
 		plugin = this;
+		bundleContext.registerService(IAndroidSDKService.class, new AndroidSDKService(), null);
 	}
 
 	@Override
@@ -37,6 +42,23 @@ public class Activator extends Plugin {
 		BundleContext context = plugin.getBundle().getBundleContext();
 		ServiceReference<T> ref = context.getServiceReference(service);
 		return ref != null ? context.getService(ref) : null;
+	}
+
+	public static void log(Throwable e) {
+		if (e instanceof CoreException) {
+			log(((CoreException) e).getStatus());
+		} else {
+			logError("exception", e);
+		}
+
+	}
+
+	public static void log(IStatus status) {
+		plugin.getLog().log(status);
+	}
+
+	public static void logError(String msg, Throwable e) {
+		plugin.getLog().log(new Status(IStatus.ERROR, getId(), msg, e));
 	}
 
 }

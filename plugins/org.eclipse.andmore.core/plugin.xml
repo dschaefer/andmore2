@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.remote.core.remoteServices">
+      <connectionType
+            canAdd="true"
+            canEdit="true"
+            canRemove="true"
+            id="org.eclipse.andmore.core.connectionType.avd"
+            name="Android Virtual Device">
+      </connectionType>
+      <connectionTypeService
+            connectionTypeId="org.eclipse.andmore.core.connectionType.avd"
+            factory="org.eclipse.andmore.core.internal.remote.AVDConnectionProviderService$Factory"
+            service="org.eclipse.remote.core.IRemoteConnectionPropertyService">
+      </connectionTypeService>
+   </extension>
+
+</plugin>
