@@ -13,7 +13,7 @@
       <connectionTypeService
             connectionTypeId="org.eclipse.andmore.core.connectionType.avd"
             factory="org.eclipse.andmore.core.internal.remote.AVDConnectionProviderService$Factory"
-            service="org.eclipse.remote.core.IRemoteConnectionPropertyService">
+            service="org.eclipse.remote.core.IRemoteConnectionProviderService">
       </connectionTypeService>
    </extension>
 

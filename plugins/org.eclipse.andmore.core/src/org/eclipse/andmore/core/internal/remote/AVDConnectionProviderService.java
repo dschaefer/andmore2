@@ -1,3 +1,10 @@
+/*******************************************************************************
+ * Copyright (c) 2016 QNX Software Systems and others.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *******************************************************************************/
 package org.eclipse.andmore.core.internal.remote;
 
 import java.io.IOException;
@@ -21,7 +28,7 @@ public class AVDConnectionProviderService implements IRemoteConnectionProviderSe
 		this.type = type;
 	}
 
-	public class Factory implements IRemoteConnectionProviderService.Factory {
+	public static class Factory implements IRemoteConnectionProviderService.Factory {
 		@Override
 		@SuppressWarnings("unchecked")
 		public <T extends Service> T getService(IRemoteConnectionType connectionType, Class<T> service) {
@@ -44,16 +51,29 @@ public class AVDConnectionProviderService implements IRemoteConnectionProviderSe
 		IAndroidSDKService sdk = Activator.getService(IAndroidSDKService.class);
 		try {
 			for (AndroidVirtualDevice device : sdk.getAVDs()) {
+				String name = device.getName();
 				if (!existing.containsKey(device.getName())) {
 					try {
-						existing.put(device.getName(), type.newConnection(device.getName()).save());
+						type.newConnection(name).save();
 					} catch (RemoteConnectionException e) {
 						Activator.logError("creating connection", e);
 					}
+				} else {
+					// Mark it as here
+					existing.remove(name);
 				}
 			}
 		} catch (IOException e) {
 			Activator.logError("fetching AVDs", e);
+		}
+
+		// Remove ones that don't exist any more
+		for (IRemoteConnection connection : existing.values()) {
+			try {
+				type.removeConnection(connection);
+			} catch (RemoteConnectionException e) {
+				Activator.logError("removing connection", e);
+			}
 		}
 	}
 

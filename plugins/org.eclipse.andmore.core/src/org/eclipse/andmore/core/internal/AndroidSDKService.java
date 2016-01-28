@@ -37,8 +37,7 @@ public class AndroidSDKService implements IAndroidSDKService {
 		@Override
 		public void run() {
 			try {
-				String line = err.readLine();
-				while (line != null) {
+				for (String line = err.readLine(); line != null; line = err.readLine()) {
 					msg(line + '\n');
 				}
 			} catch (IOException e) {
@@ -50,7 +49,7 @@ public class AndroidSDKService implements IAndroidSDKService {
 			if (console == null) {
 				console = Activator.getService(IConsoleService.class);
 				console.activate();
-				console.writeError("Error " + task + "\n");
+				console.writeError(String.format("Error %s\n", task));
 			}
 			console.writeError(line);
 		}
@@ -64,49 +63,48 @@ public class AndroidSDKService implements IAndroidSDKService {
 		reaper.start();
 
 		Collection<AndroidVirtualDevice> avds = new ArrayList<>();
-		Pattern field = Pattern.compile("^\\s*([^\\s]+):\\s*(.*)");
-		Pattern separator = Pattern.compile("^--+");
+		Pattern field = Pattern.compile("\\s*([^\\s]+):\\s*(.*)");
+		Pattern separator = Pattern.compile("--+");
 		AndroidVirtualDevice avd = null;
-		BufferedReader in = new BufferedReader(new InputStreamReader(proc.getInputStream()));
-		String line = in.readLine();
-		while (line != null) {
-			Matcher matcher = field.matcher(line);
-			if (matcher.matches()) {
-				String key = matcher.group(1);
-				String value = matcher.group(2);
-				if (avd == null) {
-					avd = new AndroidVirtualDevice();
+		try (BufferedReader in = new BufferedReader(new InputStreamReader(proc.getInputStream()))) {
+			for (String line = in.readLine(); line != null; line = in.readLine()) {
+				Matcher matcher = field.matcher(line);
+				if (matcher.matches()) {
+					String key = matcher.group(1);
+					String value = matcher.group(2);
+					if (avd == null) {
+						avd = new AndroidVirtualDevice();
+					}
+					switch (key) {
+					case "Name":
+						avd.setName(value);
+						break;
+					case "Device":
+						avd.setDevice(value);
+						break;
+					case "Path":
+						avd.setPath(value);
+						break;
+					case "Target":
+						avd.setTarget(value);
+						break;
+					case "Tag/ABI":
+						avd.setAbi(value);
+						break;
+					case "Skin":
+						avd.setSkin(value);
+						break;
+					}
+					continue;
 				}
-				switch (key) {
-				case "Name":
-					avd.setName(value);
-					break;
-				case "Device":
-					avd.setDevice(value);
-					break;
-				case "Path":
-					avd.setPath(value);
-					break;
-				case "Target":
-					avd.setTarget(value);
-					break;
-				case "Tag/ABI":
-					avd.setAbi(value);
-					break;
-				case "Skin":
-					avd.setSkin(value);
-					break;
+				matcher = separator.matcher(line);
+				if (matcher.matches()) {
+					avds.add(avd);
+					avd = null;
+					continue;
 				}
-				continue;
-			}
-			matcher = separator.matcher(line);
-			if (matcher.matches()) {
-				avds.add(avd);
-				avd = null;
-				continue;
 			}
 		}
-
 		if (avd != null) {
 			avds.add(avd);
 		}

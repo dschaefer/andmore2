@@ -15,5 +15,13 @@
             project="true">
       </wizard>
    </extension>
+   <extension
+         point="org.eclipse.remote.core.remoteServices">
+      <connectionTypeService
+            connectionTypeId="org.eclipse.andmore.core.connectionType.avd"
+            factory="org.eclipse.andmore.internal.ui.AVDRemoteUIService$Factory"
+            service="org.eclipse.remote.ui.IRemoteUIConnectionService">
+      </connectionTypeService>
+   </extension>
 
 </plugin>
