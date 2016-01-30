@@ -18,13 +18,13 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.andmore.core.internal.Activator;
+import org.eclipse.andmore.core.internal.AndroidBuilder;
 import org.eclipse.andmore.core.internal.ProjectTemplateManifest;
 import org.eclipse.andmore.core.internal.ProjectTemplateManifest.FileTemplate;
 import org.eclipse.andmore.core.internal.TemplateGenerator;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
@@ -40,7 +40,6 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.launching.IVMInstall;
 import org.eclipse.jdt.launching.JavaRuntime;
-import org.gradle.tooling.BuildException;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
 
@@ -100,18 +99,7 @@ public class AppProjectGenerator {
 		generateSources(monitor);
 
 		// Run Gradle build
-		IConsoleService console = Activator.getService(IConsoleService.class);
-		console.clear();
-		console.activate();
-		File projectDir = new File(project.getLocationURI());
-		ProjectConnection connection = GradleConnector.newConnector().forProjectDirectory(projectDir).connect();
-		try {
-			connection.newBuild().forTasks("assembleDebug").setStandardOutput(console.getOutputStream()) //$NON-NLS-1$
-					.setStandardError(console.getErrorStream()).run();
-		} catch (BuildException e) {
-		}
-
-		project.refreshLocal(IResource.DEPTH_INFINITE, monitor);
+		AndroidBuilder.gradleBuild(project, "assembleDebug", monitor); //$NON-NLS-1$
 
 		// Set up Java project
 		addNatures(monitor);
@@ -136,6 +124,8 @@ public class AppProjectGenerator {
 		entries.add(JavaCore.newContainerEntry(vmPath));
 
 		// Android jars out of gradle - TODO source if we have it
+		ProjectConnection connection = GradleConnector.newConnector()
+				.forProjectDirectory(new File(project.getLocationURI())).connect();
 		AndroidProject androidProject = connection.getModel(AndroidProject.class);
 
 		for (String jar : androidProject.getBootClasspath()) {
@@ -161,6 +151,7 @@ public class AppProjectGenerator {
 		}
 
 		javaProject.setRawClasspath(entries.toArray(new IClasspathEntry[entries.size()]), monitor);
+		connection.close();
 	}
 
 	private void addDependencies(List<IClasspathEntry> entries, Dependencies deps) {
@@ -200,9 +191,10 @@ public class AppProjectGenerator {
 		if (!project.hasNature(JavaCore.NATURE_ID)) {
 			IProjectDescription description = project.getDescription();
 			String[] prevNatures = description.getNatureIds();
-			String[] newNatures = new String[prevNatures.length + 1];
+			String[] newNatures = new String[prevNatures.length + 2];
 			System.arraycopy(prevNatures, 0, newNatures, 0, prevNatures.length);
 			newNatures[prevNatures.length] = JavaCore.NATURE_ID;
+			newNatures[prevNatures.length + 1] = AndroidNature.ID;
 			description.setNatureIds(newNatures);
 			project.setDescription(description, monitor);
 		} else {

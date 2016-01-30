@@ -16,5 +16,31 @@
             service="org.eclipse.remote.core.IRemoteConnectionProviderService">
       </connectionTypeService>
    </extension>
+   <extension
+         id="androidNature"
+         name="Android Nature"
+         point="org.eclipse.core.resources.natures">
+      <runtime>
+         <run
+               class="org.eclipse.andmore.core.AndroidNature">
+         </run>
+      </runtime>
+      <builder
+            id="org.eclipse.andmore.core.androidBuilder">
+      </builder>
+   </extension>
+   <extension
+         id="androidBuilder"
+         name="Android Gradle Builder"
+         point="org.eclipse.core.resources.builders">
+      <builder
+            hasNature="true"
+            isConfigurable="true"
+            supportsConfigurations="true">
+         <run
+               class="org.eclipse.andmore.core.internal.AndroidBuilder">
+         </run>
+      </builder>
+   </extension>
 
 </plugin>
