@@ -11,6 +11,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.regex.Matcher;
@@ -22,15 +23,13 @@ import org.eclipse.andmore.core.sdk.IAndroidSDKService;
 
 public class AndroidSDKService implements IAndroidSDKService {
 
-	private String sdkLocation = System.getProperty("user.home") + "/Library/Android/sdk";
+	private String sdkLocation = System.getProperty("user.home") + "/Library/Android/sdk"; //$NON-NLS-1$ //$NON-NLS-2$
 
 	private static class ErrorReaper extends Thread {
-		private final String task;
 		private final BufferedReader err;
 		private IConsoleService console;
 
-		public ErrorReaper(String task, InputStream err) {
-			this.task = task;
+		public ErrorReaper(InputStream err) {
 			this.err = new BufferedReader(new InputStreamReader(err));
 		}
 
@@ -41,7 +40,7 @@ public class AndroidSDKService implements IAndroidSDKService {
 					msg(line + '\n');
 				}
 			} catch (IOException e) {
-				Activator.logError("reporting tools errors", e);
+				Activator.logError("reporting tools errors", e); //$NON-NLS-1$
 			}
 		}
 
@@ -49,7 +48,6 @@ public class AndroidSDKService implements IAndroidSDKService {
 			if (console == null) {
 				console = Activator.getService(IConsoleService.class);
 				console.activate();
-				console.writeError(String.format("Error %s\n", task));
 			}
 			console.writeError(line);
 		}
@@ -57,14 +55,13 @@ public class AndroidSDKService implements IAndroidSDKService {
 
 	@Override
 	public Collection<AndroidVirtualDevice> getAVDs() throws IOException {
-		Process proc = new ProcessBuilder(getAndroidCommand(), "list", "avd").start();
-
-		ErrorReaper reaper = new ErrorReaper("listing AVDs", proc.getErrorStream());
+		Process proc = new ProcessBuilder(getAndroidCommand(), "list", "avd").start(); //$NON-NLS-1$ //$NON-NLS-2$
+		ErrorReaper reaper = new ErrorReaper(proc.getErrorStream()); // $NON-NLS-1$
 		reaper.start();
 
 		Collection<AndroidVirtualDevice> avds = new ArrayList<>();
-		Pattern field = Pattern.compile("\\s*([^\\s]+):\\s*(.*)");
-		Pattern separator = Pattern.compile("--+");
+		Pattern field = Pattern.compile("\\s*([^\\s]+):\\s*(.*)"); //$NON-NLS-1$
+		Pattern separator = Pattern.compile("--+"); //$NON-NLS-1$
 		AndroidVirtualDevice avd = null;
 		try (BufferedReader in = new BufferedReader(new InputStreamReader(proc.getInputStream()))) {
 			for (String line = in.readLine(); line != null; line = in.readLine()) {
@@ -76,22 +73,22 @@ public class AndroidSDKService implements IAndroidSDKService {
 						avd = new AndroidVirtualDevice();
 					}
 					switch (key) {
-					case "Name":
+					case "Name": //$NON-NLS-1$
 						avd.setName(value);
 						break;
-					case "Device":
+					case "Device": //$NON-NLS-1$
 						avd.setDevice(value);
 						break;
-					case "Path":
+					case "Path": //$NON-NLS-1$
 						avd.setPath(value);
 						break;
-					case "Target":
+					case "Target": //$NON-NLS-1$
 						avd.setTarget(value);
 						break;
-					case "Tag/ABI":
+					case "Tag/ABI": //$NON-NLS-1$
 						avd.setAbi(value);
 						break;
-					case "Skin":
+					case "Skin": //$NON-NLS-1$
 						avd.setSkin(value);
 						break;
 					}
@@ -118,8 +115,38 @@ public class AndroidSDKService implements IAndroidSDKService {
 		return avds;
 	}
 
+	@Override
+	public void installAPK(Path apkPath) throws IOException {
+		runCommand(getADBCommand(), "install", "-r", apkPath.toString()); //$NON-NLS-1$ //$NON-NLS-2$
+	}
+
+	@Override
+	public void startApp(String packageId, String activityId) throws IOException {
+		runCommand(getADBCommand(), "shell", "am", "start", "-n", packageId + '/' + activityId); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+	}
+
+	private void runCommand(String... cmd) throws IOException {
+		Process proc = new ProcessBuilder(cmd).start(); // $NON-NLS-1$
+		new ErrorReaper(proc.getErrorStream()).start(); // $NON-NLS-1$
+
+		IConsoleService console = null;
+		try (BufferedReader in = new BufferedReader(new InputStreamReader(proc.getInputStream()))) {
+			for (String line = in.readLine(); line != null; line = in.readLine()) {
+				if (console == null) {
+					console = Activator.getService(IConsoleService.class);
+				}
+				console.writeOutput(line);
+				console.writeOutput("\n"); //$NON-NLS-1$
+			}
+		}
+	}
+
 	private String getAndroidCommand() {
-		return sdkLocation + "/tools/android";
+		return sdkLocation + "/tools/android"; //$NON-NLS-1$
+	}
+
+	private String getADBCommand() {
+		return sdkLocation + "/platform-tools/adb"; //$NON-NLS-1$
 	}
 
 }

@@ -8,10 +8,15 @@
 package org.eclipse.andmore.core.sdk;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Collection;
 
 public interface IAndroidSDKService {
 
 	Collection<AndroidVirtualDevice> getAVDs() throws IOException;
-	
+
+	void installAPK(Path apkPath) throws IOException;
+
+	void startApp(String packageId, String activityId) throws IOException;
+
 }
