@@ -2,21 +2,6 @@
 <?eclipse version="3.4"?>
 <plugin>
    <extension
-         point="org.eclipse.remote.core.remoteServices">
-      <connectionType
-            canAdd="true"
-            canEdit="true"
-            canRemove="true"
-            id="org.eclipse.andmore.core.connectionType.avd"
-            name="Android Virtual Device">
-      </connectionType>
-      <connectionTypeService
-            connectionTypeId="org.eclipse.andmore.core.connectionType.avd"
-            factory="org.eclipse.andmore.core.internal.remote.AVDConnectionProviderService$Factory"
-            service="org.eclipse.remote.core.IRemoteConnectionProviderService">
-      </connectionTypeService>
-   </extension>
-   <extension
          id="androidNature"
          name="Android Nature"
          point="org.eclipse.core.resources.natures">
@@ -41,6 +26,53 @@
                class="org.eclipse.andmore.core.internal.AndroidBuilder">
          </run>
       </builder>
+   </extension>
+   <extension
+         point="org.eclipse.remote.core.remoteServices">
+      <connectionType
+            canAdd="true"
+            canEdit="true"
+            canRemove="true"
+            id="org.eclipse.andmore.core.connectionType.avd"
+            name="Android Virtual Device">
+      </connectionType>
+      <connectionTypeService
+            connectionTypeId="org.eclipse.andmore.core.connectionType.avd"
+            factory="org.eclipse.andmore.core.internal.remote.AVDConnectionProviderService$Factory"
+            service="org.eclipse.remote.core.IRemoteConnectionProviderService">
+      </connectionTypeService>
+   </extension>
+   <extension
+         point="org.eclipse.debug.core.launchConfigurationTypes">
+      <launchConfigurationType
+            delegate="org.eclipse.andmore.core.internal.launch.AndroidRunLaunchConfigDelegate"
+            id="org.eclipse.andmore.core.appLaunch"
+            modes="run"
+            name="Android Application"
+            public="true"
+            sourceLocatorId="org.eclipse.jdt.launching.sourceLocator.JavaSourceLookupDirector"
+            sourcePathComputerId="org.eclipse.jdt.launching.sourceLookup.javaSourcePathComputer">
+      </launchConfigurationType>
+   </extension>
+   <extension
+         point="org.eclipse.launchbar.core.launchTargetTypes">
+      <launchTargetType
+            id="org.eclipse.andmore.core.androidTarget"
+            provider="org.eclipse.andmore.core.internal.launch.AndroidLaunchTargetProvider">
+      </launchTargetType>
+   </extension>
+   <extension
+         point="org.eclipse.launchbar.core.launchBarContributions">
+      <descriptorType
+            class="org.eclipse.andmore.core.internal.launch.AndroidAppLaunchDescriptor"
+            id="org.eclipse.andmore.core.androidApp"
+            priority="10">
+      </descriptorType>
+      <configProvider
+            class="org.eclipse.andmore.core.internal.launch.AndroidLaunchConfigurationProvider"
+            descriptorType="org.eclipse.andmore.core.androidApp"
+            priority="10">
+      </configProvider>
    </extension>
 
 </plugin>

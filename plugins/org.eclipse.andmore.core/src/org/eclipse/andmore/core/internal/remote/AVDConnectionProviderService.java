@@ -22,6 +22,8 @@ import org.eclipse.remote.core.exception.RemoteConnectionException;
 
 public class AVDConnectionProviderService implements IRemoteConnectionProviderService {
 
+	public static final String TYPE_ID = "org.eclipse.andmore.core.connectionType.avd"; //$NON-NLS-1$
+
 	private final IRemoteConnectionType type;
 
 	public AVDConnectionProviderService(IRemoteConnectionType type) {
@@ -56,7 +58,7 @@ public class AVDConnectionProviderService implements IRemoteConnectionProviderSe
 					try {
 						type.newConnection(name).save();
 					} catch (RemoteConnectionException e) {
-						Activator.logError("creating connection", e);
+						Activator.logError("creating connection", e); //$NON-NLS-1$
 					}
 				} else {
 					// Mark it as here
@@ -64,7 +66,7 @@ public class AVDConnectionProviderService implements IRemoteConnectionProviderSe
 				}
 			}
 		} catch (IOException e) {
-			Activator.logError("fetching AVDs", e);
+			Activator.logError("fetching AVDs", e); //$NON-NLS-1$
 		}
 
 		// Remove ones that don't exist any more
@@ -72,7 +74,7 @@ public class AVDConnectionProviderService implements IRemoteConnectionProviderSe
 			try {
 				type.removeConnection(connection);
 			} catch (RemoteConnectionException e) {
-				Activator.logError("removing connection", e);
+				Activator.logError("removing connection", e); //$NON-NLS-1$
 			}
 		}
 	}

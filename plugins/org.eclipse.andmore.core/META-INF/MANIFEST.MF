@@ -13,9 +13,12 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.jdt.launching,
  org.slf4j.api;bundle-version="1.7.2",
  org.gradle.toolingapi;bundle-version="2.11.0",
- org.eclipse.remote.core;bundle-version="2.0.0"
+ org.eclipse.remote.core;bundle-version="2.0.0",
+ org.eclipse.debug.core,
+ org.eclipse.launchbar.core;bundle-version="2.0.0"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
-Export-Package: org.eclipse.andmore.core
+Export-Package: org.eclipse.andmore.core,
+ org.eclipse.andmore.core.internal.launch;x-friends:="org.eclipse.andmore.ui"
 Bundle-ClassPath: .,
  libs/builder-model-1.5.0.jar

@@ -23,5 +23,27 @@
             service="org.eclipse.remote.ui.IRemoteUIConnectionService">
       </connectionTypeService>
    </extension>
+   <extension
+         point="org.eclipse.debug.ui.launchConfigurationTabGroups">
+      <launchConfigurationTabGroup
+            class="org.eclipse.andmore.ui.AndroidLaunchConfigurationTabGroup"
+            id="org.eclipse.andmore.ui.launchConfigurationTabGroup"
+            type="org.eclipse.andmore.core.appLaunch">
+      </launchConfigurationTabGroup>
+   </extension>
+   <extension
+         point="org.eclipse.launchbar.ui.launchTargetTypeUI">
+      <launchTargetTypeUI
+            id="org.eclipse.andmore.core.androidTarget"
+            labelProvider="org.eclipse.andmore.internal.ui.launch.AndroidTargetLabelProvider">
+      </launchTargetTypeUI>
+   </extension>
+   <extension
+         point="org.eclipse.launchbar.ui.launchBarUIContributions">
+      <descriptorUI
+            descriptorTypeId="org.eclipse.andmore.core.androidApp"
+            labelProvider="org.eclipse.andmore.ui.AndroidDescriptorLabelProvider">
+      </descriptorUI>
+   </extension>
 
 </plugin>
