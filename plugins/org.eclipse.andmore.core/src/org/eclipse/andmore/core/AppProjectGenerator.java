@@ -86,6 +86,7 @@ public class AppProjectGenerator {
 	public void generate(IProgressMonitor monitor) throws CoreException {
 		// The model for the templates
 		model.put("projectPath", project.getFullPath().toString()); //$NON-NLS-1$
+		model.put("projectName", project.getName()); //$NON-NLS-1$
 		model.put("packageName", packageName); //$NON-NLS-1$
 		model.put("packagePath", packageName.replace('.', '/')); //$NON-NLS-1$
 		model.put("activityName", activityName); //$NON-NLS-1$

@@ -7,9 +7,11 @@
  *******************************************************************************/
 package org.eclipse.andmore.core.internal;
 
+import org.eclipse.andmore.core.AndroidNature;
 import org.eclipse.andmore.core.internal.model.AndroidProject;
 import org.eclipse.andmore.core.model.IAndroidProject;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdapterFactory;
 
 public class AndroidProjectAdapterFactory implements IAdapterFactory {
@@ -18,7 +20,14 @@ public class AndroidProjectAdapterFactory implements IAdapterFactory {
 	@SuppressWarnings("unchecked")
 	public <T> T getAdapter(Object adaptableObject, Class<T> adapterType) {
 		if (adaptableObject instanceof IProject && adapterType.equals(IAndroidProject.class)) {
-			return (T) new AndroidProject((IProject) adaptableObject);
+			IProject project = (IProject) adaptableObject;
+			try {
+				if (project.hasNature(AndroidNature.ID)) {
+					return (T) new AndroidProject(project);
+				}
+			} catch (CoreException e) {
+				Activator.log(e.getStatus());
+			}
 		}
 		return null;
 	}
