@@ -74,5 +74,15 @@
             priority="10">
       </configProvider>
    </extension>
+   <extension
+         point="org.eclipse.core.runtime.adapters">
+      <factory
+            adaptableType="org.eclipse.core.resources.IProject"
+            class="org.eclipse.andmore.core.internal.AndroidProjectAdapterFactory">
+         <adapter
+               type="org.eclipse.andmore.core.model.IAndroidProject">
+         </adapter>
+      </factory>
+   </extension>
 
 </plugin>
