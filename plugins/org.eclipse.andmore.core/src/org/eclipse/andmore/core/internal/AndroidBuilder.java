@@ -19,6 +19,9 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jdt.core.IClasspathContainer;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.JavaCore;
 import org.gradle.tooling.BuildException;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
@@ -30,6 +33,13 @@ public class AndroidBuilder extends IncrementalProjectBuilder {
 	@Override
 	protected IProject[] build(int kind, Map<String, String> args, IProgressMonitor monitor) throws CoreException {
 		gradleBuild(getProject(), "assembleDebug", monitor); //$NON-NLS-1$
+
+		// Update the dependencies
+		// TODO should really so this when build files change
+		IJavaProject javaProject = JavaCore.create(getProject());
+		JavaCore.setClasspathContainer(AndroidClasspathContainer.path, new IJavaProject[] { javaProject },
+				new IClasspathContainer[] { new AndroidClasspathContainer(javaProject) }, monitor);
+
 		return new IProject[] { getProject() };
 	}
 

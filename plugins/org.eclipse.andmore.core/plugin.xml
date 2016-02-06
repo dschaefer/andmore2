@@ -84,5 +84,12 @@
          </adapter>
       </factory>
    </extension>
+   <extension
+         point="org.eclipse.jdt.core.classpathContainerInitializer">
+      <classpathContainerInitializer
+            class="org.eclipse.andmore.core.internal.AndroidClasspathContainerInitializer"
+            id="org.eclipse.andmore.core.androidGradleDeps">
+      </classpathContainerInitializer>
+   </extension>
 
 </plugin>

@@ -7,7 +7,6 @@
  *******************************************************************************/
 package org.eclipse.andmore.core;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
@@ -19,6 +18,7 @@ import java.util.Map;
 
 import org.eclipse.andmore.core.internal.Activator;
 import org.eclipse.andmore.core.internal.AndroidBuilder;
+import org.eclipse.andmore.core.internal.AndroidClasspathContainer;
 import org.eclipse.andmore.core.internal.ProjectTemplateManifest;
 import org.eclipse.andmore.core.internal.ProjectTemplateManifest.FileTemplate;
 import org.eclipse.andmore.core.internal.TemplateGenerator;
@@ -40,16 +40,7 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.launching.IVMInstall;
 import org.eclipse.jdt.launching.JavaRuntime;
-import org.gradle.tooling.GradleConnector;
-import org.gradle.tooling.ProjectConnection;
 
-import com.android.builder.model.AndroidArtifact;
-import com.android.builder.model.AndroidLibrary;
-import com.android.builder.model.AndroidProject;
-import com.android.builder.model.Dependencies;
-import com.android.builder.model.JavaArtifact;
-import com.android.builder.model.JavaLibrary;
-import com.android.builder.model.Variant;
 import com.google.gson.Gson;
 
 public class AppProjectGenerator {
@@ -99,8 +90,12 @@ public class AppProjectGenerator {
 
 		generateSources(monitor);
 
-		// Run Gradle build
-		AndroidBuilder.gradleBuild(project, "assembleDebug", monitor); //$NON-NLS-1$
+		// Do initial code generation from gradle
+		AndroidBuilder.gradleBuild(project, "generateDebugSources", monitor); //$NON-NLS-1$
+
+		// Mark the build and .gradle folders derived
+		project.getFolder("build").setDerived(true, monitor); //$NON-NLS-1$
+		project.getFolder(".gradle").setDerived(true, monitor); //$NON-NLS-1$
 
 		// Set up Java project
 		addNatures(monitor);
@@ -119,66 +114,15 @@ public class AppProjectGenerator {
 		IPath genPath = project.getFolder("/build/generated/source/r/debug").getFullPath(); //$NON-NLS-1$
 		entries.add(JavaCore.newSourceEntry(genPath));
 
+		// Android Gradle container
+		entries.add(JavaCore.newContainerEntry(AndroidClasspathContainer.path));
+
 		// JRE
 		IVMInstall vm = JavaRuntime.getDefaultVMInstall();
 		IPath vmPath = JavaRuntime.newJREContainerPath(vm);
 		entries.add(JavaCore.newContainerEntry(vmPath));
 
-		// Android jars out of gradle - TODO source if we have it
-		ProjectConnection connection = GradleConnector.newConnector()
-				.forProjectDirectory(new File(project.getLocationURI())).connect();
-		AndroidProject androidProject = connection.getModel(AndroidProject.class);
-
-		for (String jar : androidProject.getBootClasspath()) {
-			entries.add(JavaCore.newLibraryEntry(new Path(jar), null, null));
-		}
-
-		Variant debugVariant = null;
-		for (Variant variant : androidProject.getVariants()) {
-			if ("debug".equals(variant.getName())) { //$NON-NLS-1$
-				debugVariant = variant;
-				break;
-			}
-		}
-
-		if (debugVariant != null) {
-			addDependencies(entries, debugVariant.getMainArtifact().getDependencies());
-			for (AndroidArtifact artifact : debugVariant.getExtraAndroidArtifacts()) {
-				addDependencies(entries, artifact.getDependencies());
-			}
-			for (JavaArtifact artifact : debugVariant.getExtraJavaArtifacts()) {
-				addDependencies(entries, artifact.getDependencies());
-			}
-		}
-
 		javaProject.setRawClasspath(entries.toArray(new IClasspathEntry[entries.size()]), monitor);
-		connection.close();
-	}
-
-	private void addDependencies(List<IClasspathEntry> entries, Dependencies deps) {
-		for (JavaLibrary lib : deps.getJavaLibraries()) {
-			addJavaLibrary(entries, lib);
-		}
-		for (AndroidLibrary lib : deps.getLibraries()) {
-			addAndroidLibrary(entries, lib);
-		}
-	}
-
-	private void addJavaLibrary(List<IClasspathEntry> entries, JavaLibrary lib) {
-		entries.add(JavaCore.newLibraryEntry(new Path(lib.getJarFile().getAbsolutePath()), null, null));
-		for (JavaLibrary dep : lib.getDependencies()) {
-			addJavaLibrary(entries, dep);
-		}
-	}
-
-	private void addAndroidLibrary(List<IClasspathEntry> entries, AndroidLibrary lib) {
-		entries.add(JavaCore.newLibraryEntry(new Path(lib.getJarFile().getAbsolutePath()), null, null));
-		for (AndroidLibrary dep : lib.getLibraryDependencies()) {
-			addAndroidLibrary(entries, dep);
-		}
-		for (File local : lib.getLocalJars()) {
-			entries.add(JavaCore.newLibraryEntry(new Path(local.getAbsolutePath()), null, null));
-		}
 	}
 
 	public List<IFile> getFilesToOpen() {
