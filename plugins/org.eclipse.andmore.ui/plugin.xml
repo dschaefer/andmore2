@@ -10,6 +10,7 @@
       <wizard
             category="org.eclipse.andmore.ui.category"
             class="org.eclipse.andmore.internal.ui.NewAppWizard"
+            icon="icons/android.png"
             id="org.eclipse.andmore.ui.wizard.newapp"
             name="Android Application Project"
             project="true">
@@ -34,8 +35,8 @@
    <extension
          point="org.eclipse.launchbar.ui.launchTargetTypeUI">
       <launchTargetTypeUI
-            id="org.eclipse.andmore.core.androidTarget"
-            labelProvider="org.eclipse.andmore.internal.ui.launch.AndroidTargetLabelProvider">
+            id="org.eclipse.andmore.core.connectionType.avd"
+            labelProvider="org.eclipse.launchbar.remote.ui.RemoteLaunchTargetLabelProvider">
       </launchTargetTypeUI>
    </extension>
    <extension
@@ -44,6 +45,20 @@
             descriptorTypeId="org.eclipse.andmore.core.androidApp"
             labelProvider="org.eclipse.andmore.ui.AndroidDescriptorLabelProvider">
       </descriptorUI>
+   </extension>
+   <extension
+         point="org.eclipse.ui.importWizards">
+      <category
+            id="org.eclipse.andmore.ui.importCategory"
+            name="Android">
+      </category>
+      <wizard
+            category="org.eclipse.andmore.ui.importCategory"
+            class="org.eclipse.andmore.internal.ui.ImportGradleProjectWizard"
+            icon="icons/android.png"
+            id="org.eclipse.andmore.ui.importGradle"
+            name="Android Gradle Project">
+      </wizard>
    </extension>
 
 </plugin>

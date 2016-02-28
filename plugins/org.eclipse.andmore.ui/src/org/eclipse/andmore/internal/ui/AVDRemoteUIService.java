@@ -15,6 +15,7 @@ import org.eclipse.remote.core.IRemoteConnectionType;
 import org.eclipse.remote.core.IRemoteConnectionType.Service;
 import org.eclipse.remote.ui.IRemoteUIConnectionService;
 import org.eclipse.remote.ui.IRemoteUIConnectionWizard;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Shell;
 
 public class AVDRemoteUIService implements IRemoteUIConnectionService {
@@ -22,9 +23,12 @@ public class AVDRemoteUIService implements IRemoteUIConnectionService {
 	private final IRemoteConnectionType type;
 
 	public static class Factory implements IRemoteUIConnectionService.Factory {
+		@SuppressWarnings("unchecked")
 		@Override
 		public <T extends Service> T getService(IRemoteConnectionType connectionType, Class<T> service) {
-			// TODO Auto-generated method stub
+			if (IRemoteUIConnectionService.class.equals(service)) {
+				return (T) new AVDRemoteUIService(connectionType);
+			}
 			return null;
 		}
 	}
@@ -59,6 +63,11 @@ public class AVDRemoteUIService implements IRemoteUIConnectionService {
 				} else {
 					return super.getText(element);
 				}
+			}
+
+			@Override
+			public Image getImage(Object element) {
+				return Activator.getImage(Activator.IMG_ANDROID_16);
 			}
 		};
 	}

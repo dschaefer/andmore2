@@ -10,6 +10,7 @@ package org.eclipse.andmore.core;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
+import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -25,6 +26,7 @@ import org.eclipse.andmore.core.internal.TemplateGenerator;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
+import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
@@ -35,6 +37,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
@@ -49,7 +52,7 @@ public class AppProjectGenerator {
 
 	private final TemplateGenerator generator = new TemplateGenerator(new Path(templateRoot));
 
-	private IProject project;
+	private final IProject project;
 	private String packageName;
 	private String activityName;
 	private String layoutName;
@@ -58,8 +61,21 @@ public class AppProjectGenerator {
 	private ProjectTemplateManifest manifest;
 	private final List<IFile> filesToOpen = new ArrayList<>();
 
-	public void setProject(IProject project) {
+	public AppProjectGenerator(IProject project) {
 		this.project = project;
+	}
+
+	public IProjectDescription getProjectDescription(URI location, IProject[] refProjects) {
+		IWorkspace workspace = ResourcesPlugin.getWorkspace();
+		IProjectDescription description = workspace.newProjectDescription(project.getName());
+		description.setLocationURI(location);
+		if (refProjects != null) {
+			if (refProjects.length > 0) {
+				description.setReferencedProjects(refProjects);
+			}
+		}
+		description.setNatureIds(new String[] { JavaCore.NATURE_ID, AndroidNature.ID });
+		return description;
 	}
 
 	public void setPackageName(String packageName) {
@@ -75,6 +91,8 @@ public class AppProjectGenerator {
 	}
 
 	public void generate(IProgressMonitor monitor) throws CoreException {
+		SubMonitor subMonitor = SubMonitor.convert(monitor);
+
 		// The model for the templates
 		model.put("projectPath", project.getFullPath().toString()); //$NON-NLS-1$
 		model.put("projectName", project.getName()); //$NON-NLS-1$
@@ -91,6 +109,7 @@ public class AppProjectGenerator {
 		generateSources(monitor);
 
 		// Do initial code generation from gradle
+		subMonitor.beginTask("Generating initial sources...", 1);
 		AndroidBuilder.gradleBuild(project, "generateDebugSources", monitor); //$NON-NLS-1$
 
 		// Mark the build and .gradle folders derived

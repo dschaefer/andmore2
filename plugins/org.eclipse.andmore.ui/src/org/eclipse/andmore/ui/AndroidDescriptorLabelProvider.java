@@ -7,6 +7,7 @@
  *******************************************************************************/
 package org.eclipse.andmore.ui;
 
+import org.eclipse.andmore.internal.ui.Activator;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.launchbar.core.ILaunchDescriptor;
@@ -24,8 +25,7 @@ public class AndroidDescriptorLabelProvider extends LabelProvider {
 
 	@Override
 	public Image getImage(Object element) {
-		// TODO Auto-generated method stub
-		return super.getImage(element);
+		return Activator.getImage(Activator.IMG_ANDROID_16);
 	}
 
 }

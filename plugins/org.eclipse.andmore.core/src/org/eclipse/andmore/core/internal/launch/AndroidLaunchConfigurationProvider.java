@@ -7,6 +7,7 @@
  *******************************************************************************/
 package org.eclipse.andmore.core.internal.launch;
 
+import org.eclipse.andmore.core.internal.remote.AVDConnectionProviderService;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunchConfigurationType;
@@ -18,7 +19,7 @@ public class AndroidLaunchConfigurationProvider extends ProjectLaunchConfigProvi
 
 	@Override
 	public boolean supports(ILaunchDescriptor descriptor, ILaunchTarget target) throws CoreException {
-		return target.getTypeId().equals(AndroidLaunchTargetProvider.TYPE_ID);
+		return target.getTypeId().equals(AVDConnectionProviderService.TYPE_ID);
 	}
 
 	@Override

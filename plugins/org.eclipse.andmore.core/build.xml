@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project name="project" default="build">
-	<target name="build">
-		<mkdir dir="libs"/>
-		<get src="http://search.maven.org/remotecontent?filepath=com/android/tools/build/builder-model/1.5.0/builder-model-1.5.0.jar"
-			dest="libs/builder-model-1.5.0.jar" skipexisting="true"/>
-	</target>
-</project>
