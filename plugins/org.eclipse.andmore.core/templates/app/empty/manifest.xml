@@ -1,20 +1,19 @@
 <templateManifest>
-	<srcRoot dir="${projectName}/src/main/java"/>
-	<srcRoot dir="${projectName}/src/main/res"/>
-	<srcRoot dir="${projectName}/src/test/java"/>
-	<srcRoot dir="${projectName}/src/androidTest/java"/>
-	
+	<srcRoot dir="src/main/java"/>
+	<srcRoot dir="src/main/res"/>
+	<srcRoot dir="src/test/java"/>
+	<srcRoot dir="src/androidTest/java"/>
+
 	<file src="/templates/app/empty/build.gradle" dest="${projectName}/build.gradle"/>
 	<file src="/templates/app/empty/local.properties" dest="${projectName}/local.properties"/>
 	<file src="/templates/app/empty/proguard-rules.pro" dest="${projectName}/proguard-rules.pro"/>
 	<file open="true" src="/templates/app/empty/AndroidManifest.xml"
-		dest="${projectName}/src/AndroidManifest.xml"/>
+		dest="${projectName}/src/main/AndroidManifest.xml"/>
 
 	<file open="true" src="/templates/app/empty/MainActivity.java"
 		dest="${projectName}/src/main/java/${packagePath}/${activityName}.java"/>
 	<file open="true" src="/templates/app/empty/res/layout/activity_main.xml"
 		dest="${projectName}/src/main/res/layout/${layoutName}.xml"/>
-
 	<file copy="true" src="/templates/app/empty/res/mipmap-hdpi/ic_launcher.png"
 		dest="${projectName}/src/main/res/mipmap-hdpi/ic_launcher.png"/>
 	<file copy="true" src="/templates/app/empty/res/mipmap-mdpi/ic_launcher.png"
@@ -23,18 +22,20 @@
 		dest="${projectName}/src/main/res/mipmap-xhdpi/ic_launcher.png"/>
 	<file copy="true" src="/templates/app/empty/res/mipmap-xxhdpi/ic_launcher.png"
 		dest="${projectName}/src/main/res/mipmap-xxhdpi/ic_launcher.png"/>
-		
+
 	<file src="/templates/app/empty/res/values/colors.xml"
 		dest="${projectName}/src/main/res/values/colors.xml"/>
 	<file src="/templates/app/empty/res/values/dimens.xml"
 		dest="${projectName}/src/main/res/values/dimens.xml"/>
 	<file src="/templates/app/empty/res/values-w820dp/dimens.xml"
 		dest="${projectName}/src/main/res/values-w820dp/dimens.xml"/>
-	<file src="/templates/app/empty/res/values/strings/xml"
+	<file src="/templates/app/empty/res/values/strings.xml"
 		dest="${projectName}/src/main/res/values/strings.xml"/>
-		
+	<file src="/templates/app/empty/res/values/styles.xml"
+		dest="${projectName}/src/main/res/values/styles.xml"/>
+
 	<file src="/templates/app/empty/ApplicationTest.java"
-		dest="${projectName}/src/AndroidTest/java/${packagePath}/ApplicationTest.java"/>
+		dest="${projectName}/src/androidTest/java/${packagePath}/ApplicationTest.java"/>
 	<file src="/templates/app/empty/ExampleUnitTest.java"
 		dest="${projectName}/src/test/java/${packagePath}/ExampleUnitTest.java"/>
 </templateManifest>
