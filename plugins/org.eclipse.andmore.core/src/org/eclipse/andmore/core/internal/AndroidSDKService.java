@@ -14,6 +14,9 @@ import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -123,6 +126,70 @@ public class AndroidSDKService implements IAndroidSDKService {
 	@Override
 	public void startApp(String packageId, String activityId) throws IOException {
 		runCommand(getADBCommand(), "shell", "am", "start", "-n", packageId + '/' + activityId); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+	}
+
+	private static final Pattern propsPattern = Pattern.compile("\\[(.*)\\]:\\s*\\[(.*)\\]"); //$NON-NLS-1$
+
+	@Override
+	public Map<String, String> getProperties(String device) throws IOException {
+		Map<String, String> props = new HashMap<>();
+		Process proc = new ProcessBuilder(getADBCommand(), "-s", device, "shell", "getprop").redirectErrorStream(true) //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+				.start();
+		try (BufferedReader in = new BufferedReader(new InputStreamReader(proc.getInputStream()))) {
+			for (String line = in.readLine(); line != null; line = in.readLine()) {
+				Matcher matcher = propsPattern.matcher(line);
+				if (matcher.matches()) {
+					props.put(matcher.group(1), matcher.group(2));
+				} else {
+					throw new IOException(String.format("Unexpected: %s", line)); //$NON-NLS-1$
+				}
+			}
+		}
+		return props;
+	}
+
+	@Override
+	public String getProperty(String device, String key) throws IOException {
+		Process proc = new ProcessBuilder(getADBCommand(), "-s", device, "shell", "getprop", key) //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+				.redirectErrorStream(true).start();
+		String value = null;
+		try (BufferedReader in = new BufferedReader(new InputStreamReader(proc.getInputStream()))) {
+			for (String line = in.readLine(); line != null; line = in.readLine()) {
+				value = line;
+			}
+		}
+		try {
+			int rc = proc.waitFor();
+			if (rc != 0) {
+				throw new IOException(String.format("Error %d: %s", rc, value)); //$NON-NLS-1$
+			}
+			return value;
+		} catch (InterruptedException e) {
+			return value;
+		}
+	}
+
+	private static Pattern devicesPattern = Pattern.compile("(.*)\\s+(.*)"); //$NON-NLS-1$
+
+	@Override
+	public Collection<String> getDevices() throws IOException {
+		List<String> devices = new ArrayList<>();
+		Process proc = new ProcessBuilder(getADBCommand(), "devices").redirectErrorStream(true).start(); //$NON-NLS-1$
+		try (BufferedReader in = new BufferedReader(new InputStreamReader(proc.getInputStream()))) {
+			for (String line = in.readLine(); line != null; line = in.readLine()) {
+				if (line.startsWith("List of devices attached")) { //$NON-NLS-1$
+					continue;
+				}
+				Matcher matcher = devicesPattern.matcher(line);
+				if (matcher.matches()) {
+					devices.add(matcher.group(1));
+				} else if (!line.trim().isEmpty()) {
+					throw new IOException(String.format("Unxpected: %s", line));
+				}
+			}
+		}
+
+		return devices;
 	}
 
 	private void runCommand(String... cmd) throws IOException {
