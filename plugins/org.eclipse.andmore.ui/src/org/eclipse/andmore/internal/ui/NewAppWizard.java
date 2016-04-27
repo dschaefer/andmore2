@@ -65,8 +65,7 @@ public class NewAppWizard extends BasicNewResourceWizard implements INewWizard {
 
 	@Override
 	public boolean performFinish() {
-		AppProjectGenerator generator = new AppProjectGenerator();
-		generator.setTemplateManifestPath(getTemplateManifestPath());
+		AppProjectGenerator generator = new AppProjectGenerator(getTemplateManifestPath());
 		generator.setProjectName(mainPage.getProjectName());
 		if (!mainPage.useDefaults()) {
 			generator.setLocationURI(mainPage.getLocationURI());

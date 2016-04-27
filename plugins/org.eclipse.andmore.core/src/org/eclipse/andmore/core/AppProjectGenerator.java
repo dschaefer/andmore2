@@ -30,6 +30,7 @@ import org.eclipse.jdt.launching.IVMInstall;
 import org.eclipse.jdt.launching.JavaRuntime;
 import org.eclipse.tools.templates.freemarker.FMProjectGenerator;
 import org.eclipse.tools.templates.freemarker.SourceRoot;
+import org.osgi.framework.Bundle;
 
 public class AppProjectGenerator extends FMProjectGenerator {
 
@@ -37,6 +38,10 @@ public class AppProjectGenerator extends FMProjectGenerator {
 	private String activityName;
 	private String layoutName;
 
+	public AppProjectGenerator(String manifestPath) {
+		super(manifestPath);
+	}
+	
 	public void setPackageName(String packageName) {
 		this.packageName = packageName;
 	}
@@ -64,8 +69,12 @@ public class AppProjectGenerator extends FMProjectGenerator {
 	}
 
 	@Override
+	public Bundle getSourceBundle() {
+		return Activator.getPlugin().getBundle();
+	}
+	
+	@Override
 	public void generate(Map<String, Object> model, IProgressMonitor monitor) throws CoreException {
-		setBundle(Activator.getPlugin().getBundle());
 		model.put("packageName", packageName); //$NON-NLS-1$
 		model.put("packagePath", packageName.replace('.', '/')); //$NON-NLS-1$
 		model.put("activityName", activityName); //$NON-NLS-1$
